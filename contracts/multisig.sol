@@ -10,10 +10,15 @@ contract multisig {
     -- a member can submit a game contract for review by the Audited developers
     */
     //for a user to propose an address as a signer, they have to be an approved member of the dao ecosystem
-
-    address[] internal owners;
+    address owner;
+    address[] internal signers;
     //mapping to assign Approved signers
     mapping(address => bool) public approvedSigner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not Authorised");
+        _;
+    }
 
     modifier onlyApproved() {
         require(approvedSigner[msg.sender], "Not Authorized");
@@ -22,17 +27,18 @@ contract multisig {
 
     //add the owner addresses as initial signers
     constructor(address[] memory Addresses) {
+        owner = msg.sender;
         require(
             Addresses.length > 0,
             "Not enough signers to deploy the contract"
         );
-        owners = Addresses;
-        for (uint i = 0; i < owners.length; i++) {
-            approvedSigner[owners[i]] = true;
+        signers = Addresses;
+        for (uint i = 0; i < signers.length; i++) {
+            approvedSigner[signers[i]] = true;
         }
     }
 
-    uint totalvotes = owners.length;
+    uint totalvotes = signers.length;
     uint minVotes = totalvotes / 2 + 1;
     struct proposalSigner {
         bool voteActive;
@@ -48,7 +54,7 @@ contract multisig {
     mapping(address => bool) private hasVoted;
 
     //to propose a signer, the address will have voteActive boolean set to true in order to allow voting
-    function proposeSigner(address Address) public onlyApproved {
+    function proposeSigner(address Address) public onlyOwner {
         require(!approvedSigner[Address], "already A signer");
         proposal[Address].voteActive = true;
     }
@@ -71,7 +77,13 @@ contract multisig {
 
         if (proposal[Address].votesFor >= minVotes) {
             approvedSigner[Address] = true;
+            signers.push(Address);
         }
+    }
+
+    function proposeOutSigner(address Address) public onlyOwner {
+        require(approvedSigner[Address], "Not A signer");
+        outProposal[Address].voteActive = true;
     }
 
     //vote out  Signer function

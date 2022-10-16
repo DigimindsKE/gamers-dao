@@ -33,7 +33,7 @@ contract multisig {
     address[] public signers;
     uint256 private voteID;
     mapping(address => bool) private approvedSigner;
-    mapping(address => proposalSigner) private proposal;
+    mapping(uint => proposalSigner) private proposal;
 
     mapping(address => bool) private hasVoted;
 
@@ -67,7 +67,7 @@ contract multisig {
     function proposeSigner(address _address, bool _toRemove) public onlyOwner {
         if(approvedSigner[_address] && !_toRemove) revert AlreadyAuthorised();
         if(!approvedSigner[_address] && _toRemove) revert NotAuthorised();
-        proposal[_address].voteActive = true;
+        
 
         uint id =++voteID;
 //Pull storage pointer to instance of struct into 

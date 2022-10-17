@@ -21,109 +21,103 @@ contract multisig {
     error AlreadyAuthorised();
     error AlreadyVoted();
 
-    struct proposalSigner {
+    struct ProposalSigner {
         address proposedSigner;
-        bool voteActive;
         uint8 votesFor;
         uint8 votesAgainst;
+        bool voteActive;
         bool removeOrAdd;
-        mapping(address=>bool) hasSigned;
+        mapping(address => bool) hasSigned;
     }
     address private owner;
     address[] public signers;
     uint256 private voteID;
     mapping(address => bool) private approvedSigner;
-    mapping(uint => proposalSigner) private proposal;
-
-    mapping(address => bool) private hasVoted;
-
+    mapping(uint => ProposalSigner) private proposal;
 
     //add the owner addresses as initial signers
     constructor(address[] memory _addresses) {
         owner = msg.sender;
-        if(
-            _addresses.length == 0) revert EmptyArray();
-            
+        if (_addresses.length == 0) revert EmptyArray();
+
         signers = _addresses;
-        for (uint i = 0; i < _addresses.length; i++) {
+        for (uint i = 0; i < _addresses.length;) {
             approvedSigner[_addresses[i]] = true;
-        unchecked {
-            i++;
-        }
+            unchecked {
+                i++;
+            }
         }
     }
 
     modifier onlyOwner() {
-        if(msg.sender != owner) revert NotOwner();
+        if (msg.sender != owner) revert NotOwner();
         _;
     }
 
     modifier onlyApproved() {
-        if(!approvedSigner[msg.sender]) revert NotAuthorised();
+        if (!approvedSigner[msg.sender]) revert NotAuthorised();
         _;
     }
 
     //to propose a signer, the address will have voteActive boolean set to true in order to allow voting
-    function proposeSigner(address _address, bool _toRemove) public onlyOwner {
-        if(approvedSigner[_address] && !_toRemove) revert AlreadyAuthorised();
-        if(!approvedSigner[_address] && _toRemove) revert NotAuthorised();
-        
+    function proposeSigner(address _address, bool _toRemove)
+        external
+        onlyOwner
+    {
+        if (approvedSigner[_address] && !_toRemove) revert AlreadyAuthorised();
+        if (!approvedSigner[_address] && _toRemove) revert NotAuthorised();
 
-        uint id =++voteID;
-//Pull storage pointer to instance of struct into 
-        proposalSigner storage details = proposal[id];
+        uint id = ++voteID;
+        //Pull storage pointer to instance of struct into
+        ProposalSigner storage details = proposal[id];
         details.voteActive = true;
         details.removeOrAdd = _toRemove;
 
         emit NewVote(id);
-
     }
 
     function VoteforSigner(uint id, bool vote) external onlyApproved {
-       proposalSigner storage details = proposal[id];
-        if(!details.voteActive) revert NotActive();
-        if(details.hasSigned[msg.sender]) revert AlreadyVoted();
-       
-       details.hasSigned[msg.sender] = true;
+        ProposalSigner storage details = proposal[id];
+        if (!details.voteActive) revert NotActive();
+        if (details.hasSigned[msg.sender]) revert AlreadyVoted();
 
-        if(vote){
+        details.hasSigned[msg.sender] = true;
+
+        if (vote) {
             details.votesFor += 1;
-        }else {
+        } else {
             details.votesAgainst += 1;
         }
         //If over 60% of signers have voted for
-        if((details.votesFor * 100 ) / signers.length >= 60 ){
+        if ((details.votesFor * 100) / signers.length >= 60) {
             details.voteActive = false;
 
             emit CompletedVote(id);
 
             //If to remove
-            if(details.removeOrAdd){
-
+            if (details.removeOrAdd) {
                 //Remove privilledges
                 approvedSigner[details.proposedSigner] = false;
 
                 //pull signers from storage into memory
                 address[] memory _signers = signers;
 
-                for(uint i = 0; i< _signers.length;){
-                    if(_signers[i] == details.proposedSigner){
-                        signers[i] = signers[_signers.length -1];
+                for (uint i = 0; i < _signers.length; ) {
+                    if (_signers[i] == details.proposedSigner) {
+                        signers[i] = signers[_signers.length - 1];
                         signers.pop();
                     }
 
-                    unchecked{
+                    unchecked {
                         i++;
                     }
-                }//If to add
-            }else {
+                } //If to add
+            } else {
                 approvedSigner[details.proposedSigner] = true;
             }
-        } else if((details.votesAgainst * 100 ) / signers.length >= 60){
+        } else if ((details.votesAgainst * 100) / signers.length >= 60) {
             details.voteActive = false;
             emit FailedVote(id);
         }
-
     }
-
 }

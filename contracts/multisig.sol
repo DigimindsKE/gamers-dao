@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
-import "erc1155minter.sol";
+import "erc1155currencyminter.sol";
 /*this contract is a multi-signature contract where we can
     -- add/delete signers
     An added signer will have the privilege status of a member
@@ -40,7 +40,7 @@ contract multisig {
         mapping(address => bool) hasSigned;
     }
     //address variable to store the address of the minter
-    address public erc1155MinterAddress;
+    address public currencyMinterAddress;
     address private admin;
     address[] public signers;
     uint256 private voteID;
@@ -54,9 +54,9 @@ contract multisig {
 
     //add the admin addresses as initial signers
     //added _minterAddress to get access to the minter contract
-    constructor(address[] memory _addresses, address _minterAddress) {
+    constructor(address[] memory _addresses, address _currencyAddress) {
         admin = msg.sender;
-        erc1155MinterAddress=_minterAddress;
+        currencyMinterAddress=_currencyAddress;
         if (_addresses.length == 0) revert EmptyArray();
 
         signers = _addresses;
@@ -150,7 +150,7 @@ contract multisig {
             emit FailedVote(id);
         }
     }
-    function voteCurrency(uint _id,bool _vote) {
+    function voteCurrency(uint _id,bool _vote) external onlyApproved {
         ProposalCurrency details = currencyProposal[id];
         if(!details.voteActive) revert NotActive();
         if(details.hasSigned[msg.sender]) revert AlreadyVoted();
@@ -165,9 +165,10 @@ contract multisig {
             details.voteActive = false;
 
             emit CompletedVote(id);
-            erc1155Minter minter = erc1155Minter(erc1155MinterAddress);
+            erc1155CurrencyMinter minter = erc1155CurrencyMinter(currencyMinterAddress);
             minter.addToken(details.initialAmount);
-        } else {
+        }
+       else if((details.votesAgainst * 100) / signers.length >= 40){
              details.voteActive = false;
              emit FailedVote(id);
         }

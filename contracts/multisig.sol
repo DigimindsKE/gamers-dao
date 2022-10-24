@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
-
+import "erc1155minter.sol";
 /*this contract is a multi-signature contract where we can
     -- add/delete signers
     An added signer will have the privilege status of a member
@@ -15,7 +15,7 @@ contract multisig {
     event FailedVote(uint256 voteId);
 
     error EmptyArray();
-    error NotOwner();
+    error NotAdmin();
     error NotActive();
     error NotAuthorised();
     error AlreadyAuthorised();
@@ -29,15 +29,34 @@ contract multisig {
         bool removeOrAdd;
         mapping(address => bool) hasSigned;
     }
-    address private owner;
+
+    //struct for currency proposal
+    struct ProposalCurrency {
+        uint currencyID;
+        uint initialAmount;
+        uint8 votesFor;
+        uint8 votesAgainst;
+        bool voteActive;
+        mapping(address => bool) hasSigned;
+    }
+    //address variable to store the address of the minter
+    address public erc1155MinterAddress;
+    address private admin;
     address[] public signers;
     uint256 private voteID;
+    uint private currencyVoteID;
     mapping(address => bool) private approvedSigner;
     mapping(uint => ProposalSigner) private proposal;
 
-    //add the owner addresses as initial signers
-    constructor(address[] memory _addresses) {
-        owner = msg.sender;
+    //currency mappings
+    mapping (uint => ProposalCurrency) currencyProposal;
+    mapping(uint=>bool) currencyApproved;
+
+    //add the admin addresses as initial signers
+    //added _minterAddress to get access to the minter contract
+    constructor(address[] memory _addresses, address _minterAddress) {
+        admin = msg.sender;
+        erc1155MinterAddress=_minterAddress;
         if (_addresses.length == 0) revert EmptyArray();
 
         signers = _addresses;
@@ -49,8 +68,8 @@ contract multisig {
         }
     }
 
-    modifier onlyOwner() {
-        if (msg.sender != owner) revert NotOwner();
+    modifier onlyAdmin() {
+        if (msg.sender != admin) revert NotAdmin();
         _;
     }
 
@@ -62,7 +81,7 @@ contract multisig {
     //to propose a signer, the address will have voteActive boolean set to true in order to allow voting
     function proposeSigner(address _address, bool _toRemove)
         external
-        onlyOwner
+        onlyadmin
     {
         if (approvedSigner[_address] && !_toRemove) revert AlreadyAuthorised();
         if (!approvedSigner[_address] && _toRemove) revert NotAuthorised();
@@ -74,6 +93,17 @@ contract multisig {
         details.removeOrAdd = _toRemove;
 
         emit NewVote(id);
+    }
+
+    function proposeCurrency(uint _amount) onlyAdmin {
+        uint id=voteID+1;
+        ProposalCurrency storage details = currencyProposal[id];
+        if(currencyApproved[id]) revert AlreadyMinted();
+        details.currencyId=id;
+        details.initialAmount = _amount;
+        details.voteActive = true;
+         voteID++;
+        
     }
 
     function VoteforSigner(uint id, bool vote) external onlyApproved {
@@ -118,6 +148,28 @@ contract multisig {
         } else if ((details.votesAgainst * 100) / signers.length >= 60) {
             details.voteActive = false;
             emit FailedVote(id);
+        }
+    }
+    function voteCurrency(uint _id,bool _vote) {
+        ProposalCurrency details = currencyProposal[id];
+        if(!details.voteActive) revert NotActive();
+        if(details.hasSigned[msg.sender]) revert AlreadyVoted();
+        details.hasSigned[msg.sender]=true;
+
+         if (_vote) {
+            details.votesFor += 1;
+        } else {
+            details.votesAgainst += 1;
+        }
+        if ((details.votesFor * 100) / signers.length >= 60) {
+            details.voteActive = false;
+
+            emit CompletedVote(id);
+            erc1155Minter minter = erc1155Minter(erc1155MinterAddress);
+            minter.addToken(details.initialAmount);
+        } else {
+             details.voteActive = false;
+             emit FailedVote(id);
         }
     }
 }

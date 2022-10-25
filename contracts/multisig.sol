@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
-import "erc1155currencyminter.sol";
+import './erc1155currencyminter.sol';
+
 /*this contract is a multi-signature contract where we can
     -- add/delete signers
     An added signer will have the privilege status of a member
@@ -20,6 +21,7 @@ contract multisig {
     error NotAuthorised();
     error AlreadyAuthorised();
     error AlreadyVoted();
+    error AlreadyMinted();
 
     struct ProposalSigner {
         address proposedSigner;
@@ -49,18 +51,18 @@ contract multisig {
     mapping(uint => ProposalSigner) private proposal;
 
     //currency mappings
-    mapping (uint => ProposalCurrency) currencyProposal;
-    mapping(uint=>bool) currencyApproved;
+    mapping(uint => ProposalCurrency) currencyProposal;
+    mapping(uint => bool) currencyApproved;
 
     //add the admin addresses as initial signers
     //added _minterAddress to get access to the minter contract
     constructor(address[] memory _addresses, address _currencyAddress) {
         admin = msg.sender;
-        currencyMinterAddress=_currencyAddress;
+        currencyMinterAddress = _currencyAddress;
         if (_addresses.length == 0) revert EmptyArray();
 
         signers = _addresses;
-        for (uint i = 0; i < _addresses.length;) {
+        for (uint i = 0; i < _addresses.length; ) {
             approvedSigner[_addresses[i]] = true;
             unchecked {
                 i++;
@@ -81,7 +83,7 @@ contract multisig {
     //to propose a signer, the address will have voteActive boolean set to true in order to allow voting
     function proposeSigner(address _address, bool _toRemove)
         external
-        onlyadmin
+        onlyAdmin
     {
         if (approvedSigner[_address] && !_toRemove) revert AlreadyAuthorised();
         if (!approvedSigner[_address] && _toRemove) revert NotAuthorised();
@@ -95,15 +97,14 @@ contract multisig {
         emit NewVote(id);
     }
 
-    function proposeCurrency(uint _amount) onlyAdmin {
-        uint id=voteID+1;
+    function proposeCurrency(uint _amount) external onlyAdmin {
+        uint id = ++currencyVoteID;
         ProposalCurrency storage details = currencyProposal[id];
-        if(currencyApproved[id]) revert AlreadyMinted();
-        details.currencyId=id;
+        if (currencyApproved[id]) revert AlreadyMinted();
+        details.currencyID = id;
         details.initialAmount = _amount;
         details.voteActive = true;
-         voteID++;
-        
+        currencyVoteID++;
     }
 
     function VoteforSigner(uint id, bool vote) external onlyApproved {
@@ -145,32 +146,34 @@ contract multisig {
             } else {
                 approvedSigner[details.proposedSigner] = true;
             }
-        } else if ((details.votesAgainst * 100) / signers.length >= 60) {
+        } else if ((details.votesAgainst * 100) / signers.length > 40) {
             details.voteActive = false;
             emit FailedVote(id);
         }
     }
-    function voteCurrency(uint _id,bool _vote) external onlyApproved {
-        ProposalCurrency details = currencyProposal[id];
-        if(!details.voteActive) revert NotActive();
-        if(details.hasSigned[msg.sender]) revert AlreadyVoted();
-        details.hasSigned[msg.sender]=true;
 
-         if (_vote) {
+    function voteCurrency(uint id, bool _vote) external onlyApproved {
+        ProposalCurrency storage details = currencyProposal[id];
+        if (!details.voteActive) revert NotActive();
+        if (details.hasSigned[msg.sender]) revert AlreadyVoted();
+        details.hasSigned[msg.sender] = true;
+
+        if (_vote) {
             details.votesFor += 1;
         } else {
             details.votesAgainst += 1;
         }
         if ((details.votesFor * 100) / signers.length >= 60) {
             details.voteActive = false;
-
+            currencyApproved[id]=true;
             emit CompletedVote(id);
-            erc1155CurrencyMinter minter = erc1155CurrencyMinter(currencyMinterAddress);
+            erc1155CurrencyMinter minter = erc1155CurrencyMinter(
+                currencyMinterAddress
+            );
             minter.addToken(details.initialAmount);
-        }
-       else if((details.votesAgainst * 100) / signers.length >= 40){
-             details.voteActive = false;
-             emit FailedVote(id);
+        } else if ((details.votesAgainst * 100) / signers.length > 40) {
+            details.voteActive = false;
+            emit FailedVote(id);
         }
     }
 }

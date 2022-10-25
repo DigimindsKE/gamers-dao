@@ -16,13 +16,13 @@ burnable
 contract erc1155CurrencyMinter is ERC1155, Ownable, ERC1155Burnable {
     error NotAuthorised();
     error RewardTokenNotFound();
-    mapping(uint => bool) tokenExists;
+    mapping(uint => bool) private tokenExists;
 
     //only these addresses can call specific functions from the contract
-    address DAO;
-    address reward;
+    address private DAO;
+    address private reward;
 
-    uint currentId;
+    uint private currentId;
 
     constructor(address _DAO, address _rewards) ERC1155("") {
         DAO = _DAO;
@@ -35,22 +35,16 @@ contract erc1155CurrencyMinter is ERC1155, Ownable, ERC1155Burnable {
     }
 
     function addToken(uint256 amount) external {
-        if (msg.sender != DAO) revert NotAuthorized();
-        uint tokenId = currenctId + 1;
-        tokenExists[id] = true;
+        if (msg.sender != DAO) revert NotAuthorised();
+        uint tokenId = currentId + 1;
+        tokenExists[tokenId] = true;
         _mint(_msgSender(), tokenId, amount, "");
-        currenctId = tokenId;
+        currentId = tokenId;
     }
 
-  
-
     //function to mint reward
-    function mintRewards(
-        uint256 id,
-        uint256 amount
-     
-    ) external {
-        if (msg.sender != reward) revert NotAuthorized();
+    function mintRewards(uint256 id, uint256 amount) external {
+        if (msg.sender != reward) revert NotAuthorised();
         if (!tokenExists[id]) revert RewardTokenNotFound();
         _mint(_msgSender(), id, amount, "");
     }

@@ -13,7 +13,7 @@ minting tokens as rewards can be called by enemies/reward contracts
 burnable
 */
 
-contract erc1155Minter is ERC1155, Ownable, ERC1155Burnable {
+contract erc1155CurrencyMinter is ERC1155, Ownable, ERC1155Burnable {
     error NotAuthorised();
     error RewardTokenNotFound();
     mapping(uint => bool) tokenExists;
@@ -42,14 +42,8 @@ contract erc1155Minter is ERC1155, Ownable, ERC1155Burnable {
         currenctId = tokenId;
     }
 
-  
-
     //function to mint reward
-    function mintRewards(
-        uint256 id,
-        uint256 amount
-     
-    ) external {
+    function mintRewards(uint256 id, uint256 amount) external {
         if (msg.sender != reward) revert NotAuthorized();
         if (!tokenExists[id]) revert RewardTokenNotFound();
         _mint(_msgSender(), id, amount, "");

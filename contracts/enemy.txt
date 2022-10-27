@@ -1,0 +1,41 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.17;
+
+contract enemies {
+    error NotAuthorised();
+    //values tbd, lets go with 100 for now
+    uint public multiplier;
+    uint id;
+    address private DAO;
+    address private game;
+    struct EnemyDetails {
+        uint maxLevel;
+        uint basePower;
+        uint levelMultiplier;
+        uint rewardId;
+    }
+
+    mapping(uint=>EnemyDetails)  public newEnemy;
+
+    constructor(uint _multiplier,address _DAO, address _game) {
+        multiplier = _multiplier;
+        DAO=_DAO;
+        game=_game;
+        id = 0;
+    }
+
+
+    function generateEnemy(uint _level) external {
+        if(msg.sender!=DAO) revert NotAuthorised();
+        uint enemyId = ++id;
+        EnemyDetails storage details =newEnemy[enemyId];
+        uint power = multiplier * _level;
+        details.basePower = power; 
+
+ 
+
+        //details.weaponPower = weapon;                                  
+        //details.totalPower = weapon+power;
+    }
+
+}

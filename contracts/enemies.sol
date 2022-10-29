@@ -39,10 +39,9 @@ contract enemies {
         details.maxLevel = maxLevel;
         details.basePower = basePower;
         details.levelMultiplier = levelMultiplier;
-        details.rewardId = enemyId;
+        //details.rewardId = enemyId; set to game id
 
-        //details.weaponPower = weapon;
-        //details.totalPower = weapon+power;
+        
     }
 
     function getStats(uint enemyID, uint level) external view returns (uint) {

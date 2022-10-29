@@ -30,6 +30,7 @@ contract multisig {
         bool voteActive;
         bool removeOrAdd;
         mapping(address => bool) hasSigned;
+       
     }
 
     //struct for currency proposal
@@ -113,6 +114,8 @@ contract multisig {
         if (details.hasSigned[msg.sender]) revert AlreadyVoted();
 
         details.hasSigned[msg.sender] = true;
+      
+
 
         if (vote) {
             details.votesFor += 1;

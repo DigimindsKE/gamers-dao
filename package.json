@@ -1,6 +1,7 @@
 {
   "name": "hardhat-project",
   "devDependencies": {
+    "@chainlink/contracts": "^0.5.1",
     "@openzeppelin/hardhat-upgrades": "^1.21.0"
   },
   "dependencies": {

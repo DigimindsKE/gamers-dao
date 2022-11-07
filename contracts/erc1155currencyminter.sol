@@ -18,12 +18,13 @@ contract erc1155CurrencyMinter is ERC1155, Ownable, ERC1155Burnable {
     error RewardTokenNotFound();
     mapping(uint => bool) private tokenExists;
 
+
     //only these addresses can call specific functions from the contract
     address private DAO;
     address private reward;
 
     uint private currentId;
-
+    uint[] public tokenIDs;
     constructor(address _DAO, address _rewards) ERC1155("") {
         DAO = _DAO;
         reward = _rewards;
@@ -40,6 +41,7 @@ contract erc1155CurrencyMinter is ERC1155, Ownable, ERC1155Burnable {
         tokenExists[tokenId] = true;
         _mint(_msgSender(), tokenId, amount, "");
         currentId = tokenId;
+        tokenIDs.push(tokenId);
     }
 
     //function to mint reward

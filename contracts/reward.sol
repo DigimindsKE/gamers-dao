@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 
 struct RewardPool {
     uint[] tokenIDs;
-    uint baseRewards;
+    uint[] baseRewards;
 }
 
 contract rewards is RNG, Context {
@@ -64,30 +64,31 @@ function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
         
         MintDetails storage details = onReturn[_requestID];
          uint poolId = details.poolID;
-RewardPool storage pool = poolDetails[poolId];
+        RewardPool storage pool = poolDetails[poolId];
         //Calculate tokenID
         erc1155CurrencyMinter minter = erc1155CurrencyMinter(
             currencyMinterAddress
         );
-        uint tokenId = randomWords[0]% pool.tokenIDs.length;
+        uint index = randomWords[0]% pool.tokenIDs.length;
         
         //Calculate rewardAmount for tokenID
        
-        uint baseRewards = poolDetails[poolId].baseRewards;
+        uint[] storage baseRewards = pool.baseRewards;
+        uint[] storage _tokenIds = pool.tokenIDs;
         uint enemyLevel = details.enemyLevel;
         //5% over base rewards per level
         uint levelMultiplier = (((21) ^ enemyLevel) / 20) ^ enemyLevel;
-        uint totalRewards = baseRewards * levelMultiplier;
+        uint totalRewards = baseRewards[index] * levelMultiplier;
         //Mint
         
         minter.mintRewards(
-           tokenId,
+           _tokenIds[index],
             totalRewards
         );
     }
 
     //The admin or DAO(not sure which rn) will call with an array of token IDs & an array of amounts that will be assigned to the next available ID
-    function setBaseRewards(uint256[] memory ids, uint256 amounts)
+    function setBaseRewards(uint256[] memory ids, uint256 [] memory amounts)
         external
     {
         uint id = poolID++;

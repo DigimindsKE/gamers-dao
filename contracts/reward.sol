@@ -7,14 +7,13 @@ import "@openzeppelin/contracts/utils/Context.sol";
 
 struct RewardPool {
     uint[] tokenIDs;
-    uint[] baseRewards;
+    uint baseRewards;
 }
 
 contract rewards is RNG, Context {
     error InvalidAddress();
 
-    uint public numerator;
-    uint public denominator;
+      uint private poolID;
     uint public requestID;
     address private currencyMinterAddress;
     address private managementContract;
@@ -28,7 +27,7 @@ contract rewards is RNG, Context {
     mapping(uint256 => MintDetails) private onReturn;
 
     //Visibility?
-    uint private poolID;
+  
     mapping(uint => RewardPool) private poolDetails;
 
     constructor(address _currencyAddress, address _managementContract)
@@ -56,31 +55,39 @@ contract rewards is RNG, Context {
         requestID = _requestID;
     }
 
-    function fulfillRandomWords() external {
+function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
+        internal
+        virtual
+        override{
         //Retrieve details for mint using request ID
-        uint _requestID = requestID;
+        uint _requestID = requestId;
+        
         MintDetails storage details = onReturn[_requestID];
+         uint poolId = details.poolID;
+RewardPool storage pool = poolDetails[poolId];
         //Calculate tokenID
-
-        //Calculate rewardAmount for tokenID
-        uint poolId = details.poolID;
-        uint[] memory baseRewards = poolDetails[poolId].baseRewards;
-        uint enemyLevel = details.enemyLevel;
-        //5% over base rewards per level
-        uint levelMultiplier = (((100 + 5) ^ enemyLevel) / 100) ^ enemyLevel;
-        uint totalRewards = baseRewards * levelMultiplier;
-        //Mint
         erc1155CurrencyMinter minter = erc1155CurrencyMinter(
             currencyMinterAddress
         );
+        uint tokenId = randomWords[0]% pool.tokenIDs.length;
+        
+        //Calculate rewardAmount for tokenID
+       
+        uint baseRewards = poolDetails[poolId].baseRewards;
+        uint enemyLevel = details.enemyLevel;
+        //5% over base rewards per level
+        uint levelMultiplier = (((21) ^ enemyLevel) / 20) ^ enemyLevel;
+        uint totalRewards = baseRewards * levelMultiplier;
+        //Mint
+        
         minter.mintRewards(
-            /*tokenID,*/
+           tokenId,
             totalRewards
         );
     }
 
     //The admin or DAO(not sure which rn) will call with an array of token IDs & an array of amounts that will be assigned to the next available ID
-    function setBaseRewards(uint256[] memory ids, uint256[] memory amounts)
+    function setBaseRewards(uint256[] memory ids, uint256 amounts)
         external
     {
         uint id = poolID++;
@@ -97,11 +104,8 @@ contract rewards is RNG, Context {
         return poolDetails[_poolID];
     }
 
-    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
-        internal
-        virtual
-        override
-    {}
+    
+  
 }
 
 interface ICheckRewards {

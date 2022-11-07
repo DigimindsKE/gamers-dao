@@ -57,8 +57,8 @@ abstract contract RNG is VRFConsumerBaseV2 {
         );
     }
 
-    // function fulfillRandomWords(
-    //     uint256, /* requestId */
-    //     uint256[] memory randomWords
-    // ) internal virtual override;
+     function fulfillRandomWords(
+         uint256 requestId, 
+         uint256[] memory randomWords
+    ) internal virtual override;
 }

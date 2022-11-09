@@ -116,10 +116,12 @@ interface ICheckRewards {
         returns (RewardPool memory);
 }
 
-contract get {
+/*contract get {
     function foo(address _rewards, uint256 poolId) external {
         RewardPool memory details = ICheckRewards(_rewards).getRewardPoolInfo(
             poolId
         );
     }
-}
+}  
+*/
+

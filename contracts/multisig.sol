@@ -19,6 +19,7 @@ contract multisig {
     error NotAdmin();
     error NotActive();
     error NotAuthorised();
+    error ZeroAddress();
     error AlreadyAuthorised();
     error AlreadyVoted();
     error AlreadyMinted();
@@ -63,12 +64,12 @@ contract multisig {
     mapping(uint => ProposalSigner) private proposal;
 
     //currency mappings
-    mapping(uint => ProposalCurrency) currencyProposal;
-    mapping(uint => bool) currencyApproved;
+    mapping(uint => ProposalCurrency) private currencyProposal;
+    mapping(uint => bool) public currencyApproved;
 
     //game mappings
-    mapping (uint =>ProposalGame) gameProposal;
-    mapping (address =>bool) gameApproved;
+    mapping (uint =>ProposalGame) private gameProposal;
+    mapping (address =>bool) public gameApproved;
 
     //add the admin addresses as initial signers
     //added _minterAddress to get access to the minter contract
@@ -128,13 +129,14 @@ contract multisig {
 
     function proposeGame(address game_CA) external onlyAdmin
 {
+    if(game_CA==address(0)) revert ZeroAddress();
     uint id = ++gameVoteID;
     ProposalGame storage details = gameProposal[id];
+
         if(gameApproved[game_CA]) revert AlreadyApproved();
-        details.gameID = id;
         details.gameAddress = game_CA;
         details.voteActive = true;
-        gameVoteID++;
+        
 }
 
 

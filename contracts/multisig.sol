@@ -22,6 +22,7 @@ contract multisig {
     error AlreadyAuthorised();
     error AlreadyVoted();
     error AlreadyMinted();
+    error AlreadyApproved();
 
     struct ProposalSigner {
         address proposedSigner;
@@ -42,18 +43,32 @@ contract multisig {
         bool voteActive;
         mapping(address => bool) hasSigned;
     }
+    //Game Proposal Struct
+    struct ProposalGame {
+        uint gameID;
+        address gameAddress;
+        uint8 votesFor;
+        uint8 votesAgainst;
+        bool voteActive;
+        mapping(address => bool) hasSigned;
+    }
     //address variable to store the address of the minter
     address public currencyMinterAddress;
     address private admin;
     address[] public signers;
     uint256 private voteID;
-    uint private currencyVoteID;
+    uint256 private currencyVoteID;
+    uint256 private gameVoteID;
     mapping(address => bool) private approvedSigner;
     mapping(uint => ProposalSigner) private proposal;
 
     //currency mappings
     mapping(uint => ProposalCurrency) currencyProposal;
     mapping(uint => bool) currencyApproved;
+
+    //game mappings
+    mapping (uint =>ProposalGame) gameProposal;
+    mapping (address =>bool) gameApproved;
 
     //add the admin addresses as initial signers
     //added _minterAddress to get access to the minter contract
@@ -81,6 +96,9 @@ contract multisig {
         _;
     }
 
+/*
+            PROPOSAL FUNCTIONS
+*/
     //to propose a signer, the address will have voteActive boolean set to true in order to allow voting
     function proposeSigner(address _address, bool _toRemove)
         external
@@ -108,6 +126,24 @@ contract multisig {
         currencyVoteID++;
     }
 
+    function proposeGame(address game_CA) external onlyAdmin
+{
+    uint id = ++gameVoteID;
+    ProposalGame storage details = gameProposal[id];
+        if(gameApproved[game_CA]) revert AlreadyApproved();
+        details.gameID = id;
+        details.gameAddress = game_CA;
+        details.voteActive = true;
+        gameVoteID++;
+}
+
+
+
+/*
+
+        VOTING FUNCTIONS
+
+*/
     function VoteforSigner(uint id, bool vote) external onlyApproved {
         ProposalSigner storage details = proposal[id];
         if (!details.voteActive) revert NotActive();
@@ -178,5 +214,25 @@ contract multisig {
             details.voteActive = false;
             emit FailedVote(id);
         }
+    }
+    function voteForGame(uint id, bool vote) external onlyApproved {
+         ProposalGame storage details = gameProposal[id];
+          if(!details.voteActive) revert NotActive();
+          if(details.hasSigned[msg.sender]) revert AlreadyVoted();  
+         address contractAddress = details.gameAddress;
+
+            if (vote) {
+            details.votesFor += 1;
+        } else {
+            details.votesAgainst += 1;
+        }  
+         if ((details.votesFor * 100) / signers.length >= 60) {
+            details.voteActive = false;
+           gameApproved[contractAddress]=true;
+            
+        } else if ((details.votesAgainst * 100) / signers.length > 40) {
+            details.voteActive = false;
+            emit FailedVote(id);
+        }            
     }
 }

@@ -3,6 +3,7 @@ pragma solidity 0.8.17;
 import "./erc1155currencyminter.sol";
 import "./enemies.sol";
 import "./RNG.sol";
+import "./multisig.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 
 struct RewardPool {
@@ -12,8 +13,9 @@ struct RewardPool {
 
 contract rewards is RNG, Context {
     error InvalidAddress();
+    error NotAuthorized();
 
-      uint private poolID;
+    uint private poolID;
     uint public requestID;
     address private currencyMinterAddress;
     address private managementContract;
@@ -23,7 +25,8 @@ contract rewards is RNG, Context {
         uint256 enemyLevel;
         uint256 poolID;
     }
-
+   multisig signer = multisig(managementContract);
+        
     mapping(uint256 => MintDetails) private onReturn;
 
     //Visibility?
@@ -42,7 +45,7 @@ contract rewards is RNG, Context {
     //mintRewards can only be called by a game
     function mintRewards(uint256 _poolID, uint256 enemyLevel) external {
         //Check that the caller is a game on the management contract
-
+        if(!signer.gameApproved(msg.sender)) revert NotAuthorized();
         //Request random number
         uint _requestID = requestRandomWords(1, 200000);
 
@@ -90,7 +93,9 @@ function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
     //The admin or DAO(not sure which rn) will call with an array of token IDs & an array of amounts that will be assigned to the next available ID
     function setBaseRewards(uint256[] memory ids, uint256 [] memory amounts)
         external
+      
     {
+       
         uint id = poolID++;
         RewardPool storage details = poolDetails[id];
         details.baseRewards = amounts;

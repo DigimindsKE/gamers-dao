@@ -56,7 +56,7 @@ contract enemies {
         EnemyDetails storage details = newEnemy[enemyID];
         uint basePower = details.basePower;
         uint lvlMultiplier = details.levelMultiplier;
-        uint totalMultiplier = (((100 + lvlMultiplier) ^ details.level) / 100) ^ details.level;
+        uint totalMultiplier = ((100 + lvlMultiplier) ^ details.level) / (100 ^ details.level);
         uint totalStat = basePower * totalMultiplier;
         return totalStat;
     }

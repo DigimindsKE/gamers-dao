@@ -221,7 +221,6 @@ contract multisig {
          ProposalGame storage details = gameProposal[id];
           if(!details.voteActive) revert NotActive();
           if(details.hasSigned[msg.sender]) revert AlreadyVoted();  
-         address contractAddress = details.gameAddress;
 
             if (vote) {
             details.votesFor += 1;
@@ -230,7 +229,7 @@ contract multisig {
         }  
          if ((details.votesFor * 100) / signers.length >= 60) {
             details.voteActive = false;
-           gameApproved[contractAddress]=true;
+           gameApproved[details.gameAddress]=true;
             
         } else if ((details.votesAgainst * 100) / signers.length > 40) {
             details.voteActive = false;

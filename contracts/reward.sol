@@ -80,7 +80,7 @@ function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
         uint[] storage _tokenIds = pool.tokenIDs;
         uint enemyLevel = details.enemyLevel;
         //5% over base rewards per level
-        uint levelMultiplier = (((21) ^ enemyLevel) / 20) ^ enemyLevel;
+        uint levelMultiplier = ((21) ^ enemyLevel) / (20 ^ enemyLevel);
         uint totalRewards = baseRewards[index] * levelMultiplier;
         //Mint
         

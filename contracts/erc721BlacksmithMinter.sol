@@ -70,9 +70,9 @@ contract erc721BlacksmithMinter is ERC721,Ownable {
 
 }
 
-    function removeWeapon()  {
+    function removeWeapon(uint id,bytes32 calldata _weaponType)  {
         
     }
 
-    
+
 }

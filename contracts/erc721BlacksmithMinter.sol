@@ -15,13 +15,13 @@ contract erc721BlacksmithMinter is ERC721,Ownable {
 
     struct WeaponType {
       
-       bytes32[] typeWeapon; //axe, sword, gun, etc
-       bytes32[] weaponImage;
+       string[] typeWeapon; //axe, sword, gun, etc
+       string[] weaponImage;
         
     }
     struct MintedWeapon{
-     bytes32 weaponType;
-     bytes32 imageUri;
+     string weaponType;
+     string imageUri;
     }
     mapping (uint => WeaponType) weaponType; 
     mapping (uint => MintedWeapon) mintedDetails;
@@ -70,8 +70,23 @@ contract erc721BlacksmithMinter is ERC721,Ownable {
 
 }
 
-    function removeWeapon(uint id,bytes32 calldata _weaponType)  {
-        
+
+    function removeWeapon(uint id,string calldata _weaponType)  {
+    WeaponType storage item =weaponType[id];
+
+    string[] calldata toBeDeleted = item.typeWeapon;
+    string [] calldata image = item.weaponImage;
+    for (uint i=0; i< toBeDeleted.length; ) {
+        if(_weaponType == toBeDeleted[i]){
+                toBeDeleted[i].pop;
+                image[i].pop;
+
+        }
+        unchecked {
+            i++;
+        }
+    }        
+
     }
 
 

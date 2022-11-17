@@ -7,6 +7,8 @@ import "./multisig.sol";
 import "./RNG.sol";
 
 contract erc721BlacksmithMinter is ERC721,Ownable {
+    error NotAuthorised();
+    error GameNotFound();
     address private admin;
     address private multisigAddress;
     multisig private dao;
@@ -33,6 +35,7 @@ contract erc721BlacksmithMinter is ERC721,Ownable {
         tokenCounter = 0;
     }
 
+ 
  
 
     function addWeapon(uint id, address _address,bytes32 calldata _weapon, bytes32 calldata _imgUri) external payable
@@ -72,6 +75,7 @@ contract erc721BlacksmithMinter is ERC721,Ownable {
 
 
     function removeWeapon(uint id,string calldata _weaponType)  {
+        if(msg.sender!=admin) revert NotAuthorized();
     WeaponType storage item =weaponType[id];
 
     string[] calldata toBeDeleted = item.typeWeapon;

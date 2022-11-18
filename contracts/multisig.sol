@@ -55,7 +55,7 @@ contract multisig {
     }
     //address variable to store the address of the minter
     address public currencyMinterAddress;
-    address private admin;
+    address public admin;
     address[] public signers;
     uint256 private voteID;
     uint256 private currencyVoteID;

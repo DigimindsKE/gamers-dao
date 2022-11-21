@@ -23,11 +23,15 @@ contract erc1155EffectsMinter is  ERC1155,RNG{
         uint criticalDamage;
 
     }
+    mapping (uint => WeaponEffects) private weaponEffects;
+    mapping (uint => EffectStats) private effectStats;
     
     multisig dao;
     ICurrency token;
+    
     uint private currencyID;
     uint private effectPrice;
+    
     constructor(address _DAO) ERC1155(" ") RNG(subscriptionId, vrfCoordinator, keyHash) {
         if(_DAO== address(0)) revert ZeroAddress();
         dao = multisig(_DAO);
@@ -40,8 +44,12 @@ contract erc1155EffectsMinter is  ERC1155,RNG{
 
     }
 
-    function addEffect(string memory effectName) external {
+    function addEffect(uint _id, string memory effectName, string memory url) external {
         
+        WeaponEffects storage effects = WeaponEffects[_id];
+        effects.effectName.push(effectName);
+        effects.effectImage.push(url);
+
     }
 
     function mintEffect() external {

@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./multisig.sol";
 import "./RNG.sol";
 
-contract erc721BlacksmithMinter is ERC721, Ownable {
+contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
     error NotAuthorized();
     error GameNotFound();
     error InvalidPrice();
@@ -28,11 +28,12 @@ contract erc721BlacksmithMinter is ERC721, Ownable {
     address private multisigAddress;
     multisig private dao;
     RNG private rng;
-    IERC1155 token;
+    ICurrency token;
     uint private wTypeCounter;
     uint private tokenCounter;
     uint private buyingCurrency;
     uint private buyingPrice;
+    uint private requestID;
 
     mapping(uint256 => WeaponType) private weaponType;
     mapping(uint256 => MintedWeapon) private mintedDetails;
@@ -41,12 +42,12 @@ contract erc721BlacksmithMinter is ERC721, Ownable {
         address _DAO,
         address _rng,
         address _buyToken
-    ) ERC721("Weapons", "WPN") {
+    ) ERC721("Weapons", "WPN") RNG(subscriptionId,vrfCoordinator,keyHash) {
         if(_DAO==address(0)||_rng==address(0)|| _buyToken==address(0)) revert ZeroAddress();
         dao = multisig(_DAO);
         multisigAddress = _DAO;
         rng = RNG(_rng);
-        token = IERC1155(_buyToken);
+        token = ICurrency(_buyToken);
         // admin = multisig.admin();
         tokenCounter = 0;
     }
@@ -88,6 +89,7 @@ contract erc721BlacksmithMinter is ERC721, Ownable {
         uint tokenID = ++tokenCounter;
         _safeMint(_msgSender(), tokenID);
         uint requestId = rng.requestRandomWords(1, 200000);
+        requestID = requestId;
     }
 
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
@@ -97,7 +99,7 @@ contract erc721BlacksmithMinter is ERC721, Ownable {
     {
         uint _requestId = requestId;
         //Retrieve details for mint using request ID
-        WeaponType storage weapon = WeaponType[_requestId];
+        WeaponType storage weapon = weaponType[_requestId];
         uint index = randomWords[0] % weapon.typeWeapon.length;
 
         MintedWeapon storage tokens = mintedDetails[tokenCounter];
@@ -105,16 +107,16 @@ contract erc721BlacksmithMinter is ERC721, Ownable {
         tokens.imageUri = weapon.weaponImage[index];
     }
 
-    function removeWeapon(uint id, string calldata _weaponType) external {
+    function removeWeapon(uint id, string memory _weaponType) external {
         if (msg.sender != admin) revert NotAuthorized();
         WeaponType storage item = weaponType[id];
 
-        string[] calldata toBeDeleted = item.typeWeapon;
-        string[] calldata image = item.weaponImage;
+        string[] memory toBeDeleted = item.typeWeapon;
+    
         for (uint i = 0; i < toBeDeleted.length; ) {
-            if (_weaponType == toBeDeleted[i]) {
-                toBeDeleted[i].pop;
-                image[i].pop;
+            if (keccak256(abi.encodePacked(_weaponType)) == keccak256(abi.encodePacked(toBeDeleted[i]))) {
+                 delete toBeDeleted[i];
+               delete item.weaponImage[i];
             }
             unchecked {
                 i++;

@@ -51,3 +51,10 @@ contract erc1155CurrencyMinter is ERC1155, Ownable, ERC1155Burnable {
         _mint(_msgSender(), id, amount, "");
     }
 }
+
+interface ICurrency is IERC1155{
+function _burn(address from,
+        uint256 id,
+        uint256 amount) external;
+
+}

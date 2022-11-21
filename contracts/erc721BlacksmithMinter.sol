@@ -28,7 +28,7 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
     address private multisigAddress;
     multisig private dao;
     RNG private rng;
-    ICurrency token;
+    ICurrency private token;
     uint private wTypeCounter;
     uint private tokenCounter;
     uint private buyingCurrency;

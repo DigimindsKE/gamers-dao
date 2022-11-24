@@ -30,7 +30,7 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
     //    multisig private dao;
     //  RNG private rng;
     ICurrency private token;
-    uint private wTypeCounter;
+
     uint private tokenCounter;
     uint private buyingCurrency;
     uint private buyingPrice;
@@ -41,10 +41,9 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
 
     constructor(
         address _DAO,
-        address _rng,
         address _buyToken
     ) ERC721("Weapons", "WPN") RNG(subscriptionId, vrfCoordinator, keyHash) {
-        if (_DAO == address(0) || _rng == address(0) || _buyToken == address(0))
+        if (_DAO == address(0) || _buyToken == address(0))
             revert ZeroAddress();
         // dao = multisig(_DAO);
         multisigAddress = _DAO;

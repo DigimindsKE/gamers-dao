@@ -61,7 +61,7 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
     }
 
     function addWeapon(
-        uint id,
+       uint id,
         string calldata _weapon,
         string calldata _imgUri
     ) external payable {
@@ -82,17 +82,11 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
             revert NotApprovedOperator();
 
         //send buying price to burn address
-        token.safeTransferFrom(
-            _msgSender(),
-            address(0),
-            buyingCurrency,
-            buyingPrice,
-            ""
-        );
+        token._burn(_msgSender(),buyingCurrency, buyingPrice);
         uint tokenID = ++tokenCounter;
         _safeMint(_msgSender(), tokenID);
         uint requestId = requestRandomWords(1, 200000);
-        requestID = requestId;
+
     }
 
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
@@ -121,8 +115,8 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
                 keccak256(abi.encodePacked(_weaponType)) ==
                 keccak256(abi.encodePacked(toBeDeleted[i]))
             ) {
-                delete toBeDeleted[i];
-                delete item.weaponImage[i];
+                item.typeWeapon.pop();
+                item.weaponImage.pop();
             }
             unchecked {
                 i++;

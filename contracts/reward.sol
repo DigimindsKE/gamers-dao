@@ -33,7 +33,7 @@ contract rewards is RNG, Context {
 
     mapping(uint => RewardPool) private poolDetails;
 
-    constructor(address _currencyAddress, address _managementContract)
+    constructor(address _currencyAddress, address _managementContract, uint64 subscriptionId, address vrfCoordinator, bytes32 keyHash)
         RNG(subscriptionId, vrfCoordinator, keyHash)
     {
         if (_currencyAddress == address(0) || _managementContract == address(0))

@@ -41,7 +41,7 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
 
     constructor(
         address _DAO,
-        address _buyToken
+        address _buyToken, uint64 subscriptionId, address vrfCoordinator, bytes32 keyHash
     ) ERC721("Weapons", "WPN") RNG(subscriptionId, vrfCoordinator, keyHash) {
         if (_DAO == address(0) || _buyToken == address(0))
             revert ZeroAddress();
@@ -115,7 +115,11 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
                 keccak256(abi.encodePacked(_weaponType)) ==
                 keccak256(abi.encodePacked(toBeDeleted[i]))
             ) {
+                //item.typeWeapon.pop();
+                //item.weaponImage.pop();
+                 item.typeWeapon[i] = item.typeWeapon[item.typeWeapon.length -1];
                 item.typeWeapon.pop();
+                item.weaponImage[i] = item.weaponImage[item.weaponImage.length - 1];
                 item.weaponImage.pop();
             }
             unchecked {

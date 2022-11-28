@@ -13,18 +13,21 @@ contract erc1155EffectsMinter is  ERC1155,RNG{
    error InsufficientAmount();
    error NotAuthorized();
       error NotApprovedOperator();
+      error InvalidInput();
 
 
     struct WeaponEffects {
         string[] effectName;
         string [] effectImage;
+        uint [] damage;
+        uint []critDamage;
+        
     }
     struct EffectStats {
         string effectNme;
         string effectImg;
         uint dmg;        
-        uint criticalDamage;
-        bool criticalChance;
+        uint criticalDamage; //if chance is false, dmg is 0 --if chance is true, crit dmg is determined 
     }
     mapping (uint => WeaponEffects) private weaponEffects;
     mapping (uint => EffectStats) private effectStats;
@@ -44,8 +47,12 @@ contract erc1155EffectsMinter is  ERC1155,RNG{
         DAO = _DAO;
     }
 
-    function setEffectPrice(uint _currencyID, uint _amount) external {
-        if (msg.sender!= DAO) revert NotAuthorized();
+modifier onlyDAO {
+     if (msg.sender!= DAO) revert NotAuthorized();
+     _;
+}
+
+    function setEffectPrice(uint _currencyID, uint _amount) external onlyDAO {
         if(_currencyID==0 || _amount ==0) revert InvalidInput();
         //if(!dao.currencyApproved(_currencyID)) revert NotApprovedCurrency();
         buyingCurrency = _currencyID;
@@ -53,11 +60,21 @@ contract erc1155EffectsMinter is  ERC1155,RNG{
 
     }
 
-    function addEffect(uint _id, string memory effectName, string memory url) external {
-        if (msg.sender!= DAO) revert NotAuthorized();
+    function addEffect(uint _id, string memory effectName, string memory url, uint _damage, bool critChance) external onlyDAO {
+
         WeaponEffects storage effects = weaponEffects[_id];
         effects.effectName.push(effectName);
         effects.effectImage.push(url);
+        effects.damage.push(_damage);
+
+        if(critChance) {
+            uint critdmg = _damage/2;
+            effects.critDamage.push(critdmg);
+        }else {
+            effects.critDamage.push(0);
+        }
+
+
 
     }
 
@@ -65,7 +82,7 @@ contract erc1155EffectsMinter is  ERC1155,RNG{
         //check if there is enough tokens in sender wallet
         if (token.balanceOf(_msgSender(), buyingCurrency) <= buyingPrice)
             revert InsufficientAmount();
-        if (!token.isApproved(_msgSender(), address(this)))
+        if (!token.isApprovedForAll(_msgSender(), address(this)))
             revert NotApprovedOperator();
         
         uint totalPrice = amount*buyingPrice;
@@ -89,12 +106,13 @@ contract erc1155EffectsMinter is  ERC1155,RNG{
 
         EffectStats storage tokens = effectStats[tokencounter];
         tokens.effectNme = effects.effectName[index];
-        tokens.effectImg = effects.effectImage[index];       
+        tokens.effectImg = effects.effectImage[index]; 
+        tokens.dmg = effects.damage[index];
+        tokens.criticalDamage = effects.critDamage[index];      
 
     }
 
-    function removeWeapon(uint id, string memory _WeaponEffects) external {
-        if (msg.sender != DAO) revert NotAuthorized();
+    function removeWeapon(uint id, string memory _WeaponEffects) external onlyDAO {
         WeaponEffects storage item = weaponEffects[id];
 
         string[] memory toBeDeleted = item.effectName;
@@ -108,11 +126,14 @@ contract erc1155EffectsMinter is  ERC1155,RNG{
                 item.effectName.pop();
                 item.effectImage[i] = item.effectImage[item.effectImage.length - 1];
                 item.effectImage.pop();
+                item.damage[i] = item.damage[item.damage.length-1];
+                item.damage.pop();
+                item.critDamage[i] =item.critDamage[item.damage.length - 1];
+                item.critDamage.pop();
             }
             unchecked {
                 i++;
-            }
-        }
+            } 
+        } 
     } 
-
 }

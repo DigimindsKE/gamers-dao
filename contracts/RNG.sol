@@ -44,7 +44,7 @@ abstract contract RNG is VRFConsumerBaseV2 {
 
     // Assumes the subscription is funded sufficiently.
     function requestRandomWords(uint32 numWords, uint32 callbackGasLimit)
-       public
+       internal
         returns (uint256 requestId)
     {
         // Will revert if subscription is not set and funded.

@@ -53,7 +53,12 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
         tokenCounter = 0;
     }
 
-    function setWeaponPrice(uint tokenId, uint price) external {
+    modifier onlyDAO {
+        if (msg.sender != multisigAddress) revert NotAuthorized();
+        _;
+    }
+
+    function setWeaponPrice(uint tokenId, uint price) external onlyDAO {
         //if (!dao.currencyApproved(tokenId)) revert NotApprovedCurrency();
         if (price == 0 || tokenId == 0) revert InvalidPrice();
         buyingCurrency = tokenId;
@@ -64,8 +69,8 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
        uint id,
         string calldata _weapon,
         string calldata _imgUri
-    ) external payable {
-        if (msg.sender != multisigAddress) revert NotAuthorized();
+    ) external onlyDAO {
+        
         //if(!dao.gameApproved(_address)) revert GameNotFound();
         //if (_address== address(0)) revert ZeroAddress();
 
@@ -104,8 +109,8 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
         tokens.imageUri = weapon.weaponImage[index];
     }
 
-    function removeWeapon(uint id, string memory _weaponType) external {
-        if (msg.sender != admin) revert NotAuthorized();
+    function removeWeapon(uint id, string memory _weaponType) external onlyDAO{
+        
         WeaponType storage item = weaponType[id];
 
         string[] memory toBeDeleted = item.typeWeapon;

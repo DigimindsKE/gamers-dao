@@ -60,22 +60,22 @@ contract multisig {
     uint256 private voteID;
     uint256 private currencyVoteID;
     uint256 private gameVoteID;
-    mapping(address => bool) private approvedSigner;
-    mapping(uint => ProposalSigner) private proposal;
+    mapping(address => bool) public approvedSigner;
+    mapping(uint => ProposalSigner) public proposal;
 
     //currency mappings
-    mapping(uint => ProposalCurrency) private currencyProposal;
+    mapping(uint => ProposalCurrency) public currencyProposal;
     mapping(uint => bool) public currencyApproved;
 
     //game mappings
-    mapping (uint =>ProposalGame) private gameProposal;
+    mapping (uint =>ProposalGame) public gameProposal;
     mapping (address =>bool) public gameApproved;
 
     //add the admin addresses as initial signers
     //added _minterAddress to get access to the minter contract
-    constructor(address[] memory _addresses, address _currencyAddress) {
+    constructor(address[] memory _addresses /*address _currencyAddress */) {
         admin = msg.sender;
-        currencyMinterAddress = _currencyAddress;
+      //  currencyMinterAddress = _currencyAddress;
         if (_addresses.length == 0) revert EmptyArray();
 
         signers = _addresses;
@@ -208,10 +208,12 @@ contract multisig {
             details.voteActive = false;
             currencyApproved[id]=true;
             emit CompletedVote(id);
+            /*
             erc1155CurrencyMinter minter = erc1155CurrencyMinter(
                 currencyMinterAddress
             );
             minter.addToken(details.initialAmount);
+        */
         } else if ((details.votesAgainst * 100) / signers.length > 40) {
             details.voteActive = false;
             emit FailedVote(id);

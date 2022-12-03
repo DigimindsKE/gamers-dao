@@ -55,9 +55,9 @@ contract multisig {
     }
     //address variable to store the address of the minter
     address public currencyMinterAddress;
-    address public admin;
+    address private admin;
     address[] public signers;
-    uint256 private voteID;
+    uint256 public voteID;
     uint256 private currencyVoteID;
     uint256 private gameVoteID;
     mapping(address => bool) public approvedSigner;
@@ -97,6 +97,12 @@ contract multisig {
         _;
     }
 
+    //set currencyminter address
+    function setMinterAddress(address _minter) external onlyAdmin {
+        if(_minter == address(0)) revert ZeroAddress();
+        currencyMinterAddress = _minter;
+    }
+
 /*
             PROPOSAL FUNCTIONS
 */
@@ -124,7 +130,8 @@ contract multisig {
         details.currencyID = id;
         details.initialAmount = _amount;
         details.voteActive = true;
-        currencyVoteID++;
+        //currencyVoteID++;
+        emit NewVote(id);
     }
 
     function proposeGame(address game_CA) external onlyAdmin
@@ -208,12 +215,12 @@ contract multisig {
             details.voteActive = false;
             currencyApproved[id]=true;
             emit CompletedVote(id);
-            /*
+            
             erc1155CurrencyMinter minter = erc1155CurrencyMinter(
                 currencyMinterAddress
             );
             minter.addToken(details.initialAmount);
-        */
+        
         } else if ((details.votesAgainst * 100) / signers.length > 40) {
             details.voteActive = false;
             emit FailedVote(id);

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 import './erc1155currencyminter.sol';
-
+import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 /*this contract is a multi-signature contract where we can
     -- add/delete signers
     An added signer will have the privilege status of a member
@@ -10,7 +10,7 @@ import './erc1155currencyminter.sol';
     -- a member can submit a game contract for review by the Audited developers
     */
 //for a user to propose an address as a signer, they have to be an approved member of the dao ecosystem
-contract multisig {
+contract multisig is ERC1155Holder {
     event NewVote(uint256 voteId);
     event CompletedVote(uint256 voteId);
     event FailedVote(uint256 voteId);
@@ -168,14 +168,14 @@ contract multisig {
             details.votesAgainst += 1;
         }
         //If over 60% of signers have voted for
-        if ((details.votesFor * 100) / signers.length >= 60) {
+        if (((details.votesFor * 100) / signers.length) >= 60) {
             details.voteActive = false;
 
             emit CompletedVote(id);
 
             //If to remove
-            if (details.removeOrAdd) {
-                //Remove privilledges
+            if (details.removeOrAdd == true) {
+                //Remove privileges
                 approvedSigner[details.proposedSigner] = false;
 
                 //pull signers from storage into memory
@@ -229,7 +229,8 @@ contract multisig {
     function voteForGame(uint id, bool vote) external onlyApproved {
          ProposalGame storage details = gameProposal[id];
           if(!details.voteActive) revert NotActive();
-          if(details.hasSigned[msg.sender]) revert AlreadyVoted();  
+          if(details.hasSigned[msg.sender]) revert AlreadyVoted();
+            details.hasSigned[msg.sender] = true;  
 
             if (vote) {
             details.votesFor += 1;

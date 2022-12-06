@@ -15,6 +15,7 @@ burnable
 
 contract erc1155CurrencyMinter is ERC1155, Ownable, ERC1155Burnable {
     error NotAuthorised();
+    error ZeroAddress();
     error RewardTokenNotFound();
     mapping(uint => bool) private tokenExists;
 
@@ -25,14 +26,19 @@ contract erc1155CurrencyMinter is ERC1155, Ownable, ERC1155Burnable {
 
     uint private currentId;
     uint[] public tokenIDs;
-    constructor(address _DAO, address _rewards) ERC1155("") {
+    constructor(address _DAO) ERC1155("") {
         DAO = _DAO;
-        reward = _rewards;
+        
         currentId = 0;
     }
 
     function setURI(string memory newuri) external onlyOwner {
         _setURI(newuri);
+    }
+
+    function setRewardAddress(address _reward)external onlyOwner{
+        if (_reward== address(0) ) revert ZeroAddress();
+        reward = _reward;
     }
 
     function addToken(uint256 amount) external {

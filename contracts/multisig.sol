@@ -55,7 +55,7 @@ contract multisig is ERC1155Holder {
     }
     //address variable to store the address of the minter
     address public currencyMinterAddress;
-    address private admin;
+    address public admin;
     address[] public signers;
     uint256 public voteID;
     uint256 private currencyVoteID;
@@ -224,10 +224,7 @@ contract multisig is ERC1155Holder {
             currencyApproved[id]=true;
             emit CompletedVote(id);
             
-            erc1155CurrencyMinter minter = erc1155CurrencyMinter(
-                currencyMinterAddress
-            );
-            minter.addToken(details.initialAmount);
+            
         
         } else if ((details.votesAgainst * 100) / signers.length > 40) {
             details.voteActive = false;

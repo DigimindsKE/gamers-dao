@@ -67,9 +67,8 @@ describe("multisig DAO", function () {
         
         await Multisig.connect(user).voteCurrency(1, true);
         
-        
-        console.log((await Minter.balanceOf(Multisig.address,1)).toString());
-        expect((await Minter.balanceOf(Multisig.address,1)).toString()).to.equal('100000');
+        expect(await Multisig.currencyApproved(1)).to.equal(true);
+       
     })
 
 

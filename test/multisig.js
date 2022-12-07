@@ -20,7 +20,7 @@ describe("multisig DAO", function () {
         let resp = await pSigner.wait()
         //    console.log("2: ",resp.events[0].args.voteId.toString())
         const id = resp.events[0].args.voteId.toString()
-        let active = (await Multisig.proposal(1)).voteActive;
+        let active = (await Multisig.proposal(id)).voteActive;
         console.log(active);
         expect(active).to.equal(true);
     })
@@ -30,7 +30,7 @@ describe("multisig DAO", function () {
         let resp = await pcurrency.wait()    //   const id = pcurrency.id;
         const id = resp.events[0].args.voteId.toString();
                 console.log(id)
-        expect((await Multisig.currencyProposal(1)).voteActive).to.equal(true);
+        expect((await Multisig.currencyProposal(id)).voteActive).to.equal(true);
     })
 
     it("Admin should be able to propose a game", async function () {
@@ -46,20 +46,18 @@ describe("multisig DAO", function () {
         let resp = await pSigner.wait()
         
         const id = resp.events[0].args.voteId.toString()
-        console.log(id)
+     //   console.log(id)
         //    const id = pSigner.voteID;
-
-        await Multisig.connect(owner).VoteforSigner(1, true);
-        await Multisig.connect(user1).VoteforSigner(1, true);
+       // console.log((await Multisig.proposal(1)).removeOrAdd)
+        await Multisig.connect(owner).VoteforSigner(id, true);
+        await Multisig.connect(user1).VoteforSigner(id, true);
       // await Multisig.connect(user).VoteforSigner(id, true);
-
+        //console.log((await Multisig.proposal(1)).proposedSigner)
         //  await Multisig.connect(user1).VoteforSigner(id, true);
-            console.log(await Multisig.signers(0));
-            console.log(await Multisig.signers(1));
-            console.log(await Multisig.signers(2));
-           
+         
+         //console.log(await Multisig.approvedSigner(user2.address))  
         expect(await Multisig.approvedSigner(user2.address)).to.equal(true);
-        console.log(await Multisig.approvedSigner(user2.address));
+    
     })
 
     it("A voted currency should be minted", async function () {
@@ -77,11 +75,27 @@ describe("multisig DAO", function () {
 
         it("A voted in game should be allowed", async function(){
             const testAddress = "0x34d235fC47593EA72A493804FEd11C1499A7826C";
-            await Multisig.proposeGame(testAddress);
-
-            await Multisig.connect(user).voteForGame(1, true);
-            await Multisig.connect(user1).voteForGame(1, true);
+      let game = (await Multisig.proposeGame(testAddress));
+                let resp = await game.wait();
+           const id = resp.events[0].args.voteId.toString()
+             console.log(id)   
+            await Multisig.connect(user).voteForGame(id, true);
+            await Multisig.connect(user1).voteForGame(id, true);
 
             expect(await Multisig.gameApproved(testAddress)) .to.equal(true);
+        })
+
+        it("A voted out Signer should be removed", async function(){
+            let pSigner = await Multisig.proposeSigner(user1.address, true);
+            let resp = await pSigner.wait()
+            
+            const id = resp.events[0].args.voteId.toString()
+           
+            await Multisig.connect(owner).VoteforSigner(id, true);
+            await Multisig.connect(user1).VoteforSigner(id, true);
+     
+             
+             console.log(await Multisig.approvedSigner(user2.address))  
+            expect(await Multisig.approvedSigner(user1.address)).to.equal(false);            
         })
 })

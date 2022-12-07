@@ -103,6 +103,11 @@ contract multisig is ERC1155Holder {
         currencyMinterAddress = _minter;
     }
 
+//internal functions for signers
+
+    function removeSigner() internal{
+
+    }
 /*
             PROPOSAL FUNCTIONS
 */
@@ -117,6 +122,7 @@ contract multisig is ERC1155Holder {
         uint id = ++voteID;
         //Pull storage pointer to instance of struct into
         ProposalSigner storage details = proposal[id];
+        details.proposedSigner = _address;
         details.voteActive = true;
         details.removeOrAdd = _toRemove;
 
@@ -143,7 +149,7 @@ contract multisig is ERC1155Holder {
         if(gameApproved[game_CA]) revert AlreadyApproved();
         details.gameAddress = game_CA;
         details.voteActive = true;
-        
+        emit NewVote(id);      
 }
 
 
@@ -174,10 +180,13 @@ contract multisig is ERC1155Holder {
             emit CompletedVote(id);
 
             //If to remove
-            if (details.removeOrAdd == true) {
+           if (details.removeOrAdd == false) {
                 //Remove privileges
+                approvedSigner[details.proposedSigner] = true;
+            }
+            
+            else {
                 approvedSigner[details.proposedSigner] = false;
-
                 //pull signers from storage into memory
                 address[] memory _signers = signers;
 
@@ -191,8 +200,7 @@ contract multisig is ERC1155Holder {
                         i++;
                     }
                 } //If to add
-            } else {
-                approvedSigner[details.proposedSigner] = true;
+            
             }
         } else if ((details.votesAgainst * 100) / signers.length > 40) {
             details.voteActive = false;

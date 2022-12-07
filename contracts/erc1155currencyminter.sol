@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
-
+import "./multisig.sol";
 /* 
 Contract to create new currencies
 Can only be called by the multi-sig contract.
@@ -15,20 +15,22 @@ burnable
 
 contract erc1155CurrencyMinter is ERC1155, Ownable, ERC1155Burnable {
     error NotAuthorised();
+    error NotApprovedCurrency();
     error ZeroAddress();
     error RewardTokenNotFound();
     mapping(uint => bool) private tokenExists;
 
-
+    multisig msDAO;
     //only these addresses can call specific functions from the contract
-    address private DAO;
+    address private admin;
     address private reward;
 
     uint private currentId;
     uint[] public tokenIDs;
     constructor(address _DAO) ERC1155("") {
-        DAO = _DAO;
-        
+        //DAO = _DAO;
+        msDAO = multisig(_DAO);
+        admin = msDAO.admin();
         currentId = 0;
     }
 
@@ -42,8 +44,10 @@ contract erc1155CurrencyMinter is ERC1155, Ownable, ERC1155Burnable {
     }
 
     function addToken(uint256 amount) external {
-        if (msg.sender != DAO) revert NotAuthorised();
         uint tokenId = currentId + 1;
+        bool isCurrencyApproved = msDAO.currencyApproved(tokenId);
+        if (msg.sender != admin) revert NotAuthorised();
+        if(!isCurrencyApproved) revert NotApprovedCurrency();
         tokenExists[tokenId] = true;
         _mint(_msgSender(), tokenId, amount, "");
         currentId = tokenId;

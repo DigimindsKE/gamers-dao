@@ -39,7 +39,7 @@ contract Character is ERC721, Ownable {
         if (!signer.gameApproved(msg.sender)) revert NotAuthorized();
         _;
     }
-    function safeMint() external onlyApproved {
+    function safeMint() external {
         
         
         uint tokenID = ++counter;
@@ -56,17 +56,17 @@ contract Character is ERC721, Ownable {
         uint _bpower,
         uint _mlvl,
         uint _mXp
-    ) external onlyApproved {
-        
+    ) external  onlyApproved{
+     
         _basePower = _bpower;
         _maxLvl = _mlvl;
         _maxXp = _mXp;
     }
 
-    function upgradeCharacter(uint id) external onlyApproved{
+    function upgradeCharacter(uint id) external {
    
         CharStats storage stats = characterStats[id];
-        if (stats.xp != stats.maxXp) revert NotEnoughXP();
+       if (stats.xp != stats.maxXp) revert NotEnoughXP();
         if (stats.level >= stats.maxLevel) revert MaxLevel();
         uint level = ++stats.level;
         stats.xp = 0;

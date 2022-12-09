@@ -8,12 +8,13 @@ describe("multisig DAO", function () {
         // await minter.deployed();
         [owner, user, user1, user2] = await hre.ethers.getSigners();
         const currencyMinter = await hre.ethers.getContractFactory("erc1155CurrencyMinter");
-
         const multisig = await hre.ethers.getContractFactory("multisig");
+      
+
         Multisig = await multisig.deploy([owner.address, user.address, user1.address]);
 
         Minter  =await currencyMinter.deploy(Multisig.address);
-
+       
     })
     it("Admin should be able to propose a signer", async function () {
         let pSigner = await Multisig.proposeSigner(user2.address, false);
@@ -114,4 +115,61 @@ describe("ERC1155 Currency Minter", async function(){
        
     })
 
+    describe("ERC1155 Character Minter", async function(){
+        beforeEach(async function () {
+            
+            // await minter.deployed();
+            [owner, user, user1, user2] = await hre.ethers.getSigners();
+            const currencyMinter = await hre.ethers.getContractFactory("Character");
+    
+            const multisig = await hre.ethers.getContractFactory("multisig");
+            Multisig = await multisig.deploy([owner.address, user.address, user1.address]);
+    
+            Minter  =await currencyMinter.deploy(Multisig.address);
+            await Minter.setBaseStats(100,100,100);
+        })
+        it("A user can mint a character", async function () {
+            await Minter.safeMint()
+         
+            console.log((await Minter.balanceOf(owner.address)).toString())
+            expect((await Minter.balanceOf(owner.address)).toString()).to.equal('1');
+            
+           
+        })
+        it("A user can upgrade a character", async function () {
+            await Minter.safeMint()
+            await Minter.upgradeCharacter(1)
+            console.log((await Minter.characterStats(1)).level.toString())
+
+            expect((await Minter.characterStats(1)).level.toString()).to.equal('2');
+            
+           
+        })
+        describe("Enemies Contract", async function(){
+            beforeEach(async function () {
+                
+                // await minter.deployed();
+                [owner, user, user1, user2] = await hre.ethers.getSigners();
+                const enemy = await hre.ethers.getContractFactory("enemies");
+        
+                const multisig = await hre.ethers.getContractFactory("multisig");
+                Multisig = await multisig.deploy([owner.address, user.address, user1.address]);
+        
+                Enemies  =await enemy.deploy(Multisig.address);
+                
+            })
+        
+        it("User should be able to generate an enemy", async function(){
+            await Enemies.generateEnemy(100,100,3)        
+            console.log((await Enemies.newEnemy(1)).level.toString()) 
+            expect((await Enemies.newEnemy(1)).level.toString()).to.equal('1')
+        })
+        it("Shoud be able to upgrade an enemy", async function(){
+            await Enemies.generateEnemy(100,100,3)  
+            await Enemies.upgradeEnemy(1)
+            console.log((await Enemies.newEnemy(1)).level.toString()) 
+            expect((await Enemies.newEnemy(1)).level.toString()).to.equal('2')
+        })
+})
+    })
 })

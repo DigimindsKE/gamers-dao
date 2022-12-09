@@ -20,13 +20,13 @@ contract enemies {
     mapping(uint => EnemyDetails) public newEnemy;
 
     constructor(
-        uint _multiplier,
-        address _DAO,
-        address _game
+       
+        address _DAO
+       /* address _game */
     ) {
-        multiplier = _multiplier;
+    //        multiplier = _multiplier;
         DAO = _DAO;
-        game = _game;
+        //game = _game;
         id = 0;
     }
 
@@ -35,12 +35,13 @@ contract enemies {
         uint basePower,
         uint levelMultiplier
     ) external {
-        if (msg.sender != DAO) revert NotAuthorised();
+       // if (msg.sender != DAO) revert NotAuthorised();
         uint enemyId = ++id;
         EnemyDetails storage details = newEnemy[enemyId];
         details.maxLevel = maxLevel;
         details.basePower = basePower;
         details.levelMultiplier = levelMultiplier;
+        details.level = 1;
       
         //details.rewardId = enemyId; set to game id
 

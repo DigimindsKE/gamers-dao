@@ -1,5 +1,5 @@
 # Gamers DAO
-Gamers' DAO tries to add to the gameFI industry by enabling members of the community to have a say in the game experiences, as well as ensuring security and functionality standards are met. For a game to be accepted onto the Gamers’ DAO ecosystem, it has to be voted in by both the community (holders of the SPN token for governance) and a group of audited, experienced web3 experts/devs.
+Gamers' DAO tries to add to the gameFI industry by enabling members of the community to have a say in the game experiences, as well as ensuring security and functionality standards are met. For a game to be accepted onto the Gamers’ DAO ecosystem, it has to be voted in by both the community (holders of the SPN token for governance) and a group of experienced web3 experts/devs.
 
 # Goals of Gamers’ DAO
 ```shell

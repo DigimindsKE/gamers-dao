@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./multisig.sol";
 import "./RNG.sol";
+import "./erc1155currencyminter.sol";
 
 contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
     error NotAuthorized();
@@ -27,7 +28,7 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
 
     address private admin;
     address private multisigAddress;
-    //    multisig private dao;
+        multisig private dao;
     //  RNG private rng;
     ICurrency private token;
 
@@ -45,16 +46,16 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
     ) ERC721("Weapons", "WPN") RNG(subscriptionId, vrfCoordinator, keyHash) {
         if (_DAO == address(0) || _buyToken == address(0))
             revert ZeroAddress();
-        // dao = multisig(_DAO);
+         dao = multisig(_DAO);
         multisigAddress = _DAO;
         // rng = RNG(_rng);
         token = ICurrency(_buyToken);
-        // admin = multisig.admin();
+        admin = dao.admin();
         tokenCounter = 0;
     }
 
     modifier onlyDAO {
-        if (msg.sender != multisigAddress) revert NotAuthorized();
+        if (msg.sender != admin) revert NotAuthorized();
         _;
     }
 

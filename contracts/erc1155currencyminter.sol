@@ -66,5 +66,4 @@ interface ICurrency is IERC1155{
 function _burn(address from,
         uint256 id,
         uint256 amount) external;
-
 }

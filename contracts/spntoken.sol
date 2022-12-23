@@ -8,7 +8,7 @@ contract spnToken is ERC20{
 error NotAdmin();
 address private admin;
     constructor(uint _amount) ERC20("GameDao", "SPN"){
-        _mint(_msgSender(),_amount);
+        _mint(_msgSender(),_amount* 10**18);
         admin =msg.sender;
     }
 

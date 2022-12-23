@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
-import './erc1155currencyminter.sol';
+//import './erc1155currencyminter.sol';
 import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 /*this contract is a multi-signature contract where we can
     -- add/delete signers
@@ -98,10 +98,7 @@ contract multisig is ERC1155Holder {
     }
 
     //set currencyminter address
-    function setMinterAddress(address _minter) external onlyAdmin {
-        if(_minter == address(0)) revert ZeroAddress();
-        currencyMinterAddress = _minter;
-    }
+  
 
 //internal functions for signers
 

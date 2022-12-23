@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "./multisig.sol";
 import "./RNG.sol";
+import "./erc1155currencyminter.sol";
 
 contract erc1155EffectsMinter is  ERC1155,RNG{
    error ZeroAddress();
@@ -30,9 +31,9 @@ contract erc1155EffectsMinter is  ERC1155,RNG{
         uint criticalDamage; //if chance is false, dmg is 0 --if chance is true, crit dmg is determined 
     }
     mapping (uint => WeaponEffects) private weaponEffects;
-    mapping (uint => EffectStats) private effectStats;
+    mapping (uint => EffectStats) public effectStats;
     
-    //multisig private dao;
+    multisig private dao;
     ICurrency private token;
     
     uint private tokenCounter;
@@ -40,15 +41,16 @@ contract erc1155EffectsMinter is  ERC1155,RNG{
     uint private buyingPrice;
   
     address private DAO;
-    
+    address private owner;
+
     constructor(address _DAO, uint64 subscriptionId, address vrfCoordinator, bytes32 keyHash) ERC1155(" ") RNG(subscriptionId, vrfCoordinator, keyHash) {
         if(_DAO== address(0)) revert ZeroAddress();
-       // dao = multisig(_DAO);
-        DAO = _DAO;
+        dao = multisig(_DAO);
+        owner = dao.admin();
     }
 
 modifier onlyDAO {
-     if (msg.sender!= DAO) revert NotAuthorized();
+     if (msg.sender!= owner) revert NotAuthorized();
      _;
 }
 

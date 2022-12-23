@@ -16,6 +16,7 @@ The Dev can also request for their own in-game token, which will have the commun
 Once both the tech team and community has signed off, the dao allows the game into the ecosystem and gives the contract access to the ecosytem’s resources.
 
 # Goerli Testnet Addresses 
+```shell
 Multisig Contract  0x22dAB01f8FCF47D14280AdB21586Da64969991c8
 Currency Minter : 0x1973D0f73253c3F0D94B83B75103A6BDe411B86c
 Governance Token:  0xeC46Ee74967F193773aeFFe630C86B0a2F1aCC7c
@@ -24,4 +25,4 @@ Weapon Minter:  0xF215289541051f3B0Ee4875cD2DfaFB70219890E
 Effect Minter:  0xabaD56037ce4593D70F4B21d4a5CA65511843fB4
 Enemy:  0x3a3584521E7f752DE78e7a900BE2226016744745
 Rewards:  0xeC46Ee74967F193773aeFFe630C86B0a2F1aCC7c
-
+```

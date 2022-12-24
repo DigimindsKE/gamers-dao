@@ -14,14 +14,14 @@ async function main() {
   const Currency ="0x1973D0f73253c3F0D94B83B75103A6BDe411B86c"
   //[admin, user1, user2] = ["0x34d235fC47593EA72A493804FEd11C1499A7826C","0x11ec36418bE9a610904D1409EF0577b645104881", "0xa5065676D5d12b202dF10f479F2DDD62234b91b9"]
   
- /* const ms = await hre.ethers.getContractFactory("multisig");
+  const ms = await hre.ethers.getContractFactory("multisig");
   const Multisig = await ms.deploy(["0x34d235fC47593EA72A493804FEd11C1499A7826C","0x11ec36418bE9a610904D1409EF0577b645104881", "0xa5065676D5d12b202dF10f479F2DDD62234b91b9"]);
   await Multisig.deployed();
   console.log("Multisig Contract Address ", Multisig.address)
 
   const curr = await hre.ethers.getContractFactory("erc1155CurrencyMinter");
-  const Currency = await curr.deploy(Multisig.address);
-  await Currency.deployed()
+  const currency = await curr.deploy(Multisig.address);
+  await currency.deployed()
   console.log("currency Minter CA:", Currency.address);
 
   const token = await hre.ethers.getContractFactory("spnToken")
@@ -33,7 +33,7 @@ async function main() {
   const Character= await char.deploy(Multisig.address)
   await Character.deployed();
   console.log("Character Minter: ", Character.address)
-*/
+
   const weapon = await hre.ethers.getContractFactory("erc721BlacksmithMinter")
   const Weapons = await weapon.deploy(multisigAddress,Currency,subscriptionID,vrfCoordinator,KeyHash)
   await Weapons.deployed();
@@ -44,7 +44,7 @@ async function main() {
   await Effect.deployed();
   console.log("Effect Minter: ", Effect.address)
 
-  /*
+
   const enemy = await hre.ethers.getContractFactory("enemies")
   const Enemies = await enemy.deploy(Multisig.address)
   await Enemies.deployed();
@@ -54,7 +54,9 @@ async function main() {
   const Rewards = await reward.deploy(Currency.address,Multisig.address,subscriptionID,vrfCoordinator,KeyHash)
   await Rewards.deployed();
   console.log("Rewards: ", Token.address)
-*/
+
+  
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere

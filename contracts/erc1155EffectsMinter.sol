@@ -49,12 +49,12 @@ contract erc1155EffectsMinter is  ERC1155,RNG{
         owner = dao.admin();
     }
 
-modifier onlyDAO {
+modifier onlyAdmin {
      if (msg.sender!= owner) revert NotAuthorized();
      _;
 }
 
-    function setEffectPrice(uint _currencyID, uint _amount) external onlyDAO {
+    function setEffectPrice(uint _currencyID, uint _amount) external onlyAdmin {
         if(_currencyID==0 || _amount ==0) revert InvalidInput();
         //if(!dao.currencyApproved(_currencyID)) revert NotApprovedCurrency();
         buyingCurrency = _currencyID;
@@ -62,7 +62,7 @@ modifier onlyDAO {
 
     }
 
-    function addEffect(uint _id, string memory effectName, string memory url, uint _damage, bool critChance) external onlyDAO {
+    function addEffect(uint _id, string memory effectName, string memory url, uint _damage, bool critChance) external onlyAdmin {
 
         WeaponEffects storage effects = weaponEffects[_id];
         effects.effectName.push(effectName);
@@ -80,18 +80,17 @@ modifier onlyDAO {
 
     }
 
-   function mintWeapon(uint amount) external {
+   function mintEffect() external {
         //check if there is enough tokens in sender wallet
-        if (token.balanceOf(_msgSender(), buyingCurrency) <= buyingPrice)
-            revert InsufficientAmount();
+        
         if (!token.isApprovedForAll(_msgSender(), address(this)))
             revert NotApprovedOperator();
-        
-        uint totalPrice = amount*buyingPrice;
+        if (token.balanceOf(_msgSender(), buyingCurrency) <= buyingPrice)
+            revert InsufficientAmount();
         //send buying price to burn address
-        token._burn(_msgSender(),buyingCurrency, totalPrice);
+        token._burn(_msgSender(),buyingCurrency, buyingPrice);
         uint tokenID = ++tokenCounter;
-         _mint(_msgSender(), tokenID, amount ,"");
+         _mint(_msgSender(), tokenID, 1 ,"");
         uint requestId = requestRandomWords(1, 200000);
 
     }
@@ -114,7 +113,7 @@ modifier onlyDAO {
 
     }
 
-    function removeWeapon(uint id, string memory _WeaponEffects) external onlyDAO {
+    function removeWeapon(uint id, string memory _WeaponEffects) external onlyAdmin {
         WeaponEffects storage item = weaponEffects[id];
 
         string[] memory toBeDeleted = item.effectName;

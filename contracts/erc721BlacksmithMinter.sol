@@ -54,12 +54,12 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
         tokenCounter = 0;
     }
 
-    modifier onlyDAO {
+    modifier onlyAdmin {
         if (msg.sender != admin) revert NotAuthorized();
         _;
     }
 
-    function setWeaponPrice(uint tokenId, uint price) external onlyDAO {
+    function setWeaponPrice(uint tokenId, uint price) external onlyAdmin {
         //if (!dao.currencyApproved(tokenId)) revert NotApprovedCurrency();
         if (price == 0 || tokenId == 0) revert InvalidPrice();
         buyingCurrency = tokenId;
@@ -70,7 +70,7 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
        uint id,
         string calldata _weapon,
         string calldata _imgUri
-    ) external onlyDAO {
+    ) external onlyAdmin {
         
         //if(!dao.gameApproved(_address)) revert GameNotFound();
         //if (_address== address(0)) revert ZeroAddress();
@@ -90,7 +90,7 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
         //send buying price to burn address
         token._burn(_msgSender(),buyingCurrency, buyingPrice);
         uint tokenID = ++tokenCounter;
-        _safeMint(_msgSender(), tokenID);
+        _mint(_msgSender(), tokenID);
         uint requestId = requestRandomWords(1, 200000);
 
     }
@@ -110,7 +110,7 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
         tokens.imageUri = weapon.weaponImage[index];
     }
 
-    function removeWeapon(uint id, string memory _weaponType) external onlyDAO{
+    function removeWeapon(uint id, string memory _weaponType) external onlyAdmin{
         
         WeaponType storage item = weaponType[id];
 

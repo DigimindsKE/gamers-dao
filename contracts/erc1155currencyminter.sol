@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "./multisig.sol";
+
 /* 
 Contract to create new currencies
 Can only be called by the multi-sig contract.
@@ -49,6 +50,7 @@ contract erc1155CurrencyMinter is ERC1155, Ownable, ERC1155Burnable {
         if (msg.sender != admin) revert NotAuthorised();
         if(!isCurrencyApproved) revert NotApprovedCurrency();
         tokenExists[tokenId] = true;
+        
         _mint(_msgSender(), tokenId, amount, "");
         currentId = tokenId;
         tokenIDs.push(tokenId);
@@ -66,4 +68,5 @@ interface ICurrency is IERC1155{
 function _burn(address from,
         uint256 id,
         uint256 amount) external;
+
 }

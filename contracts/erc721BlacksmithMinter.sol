@@ -1,14 +1,14 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./multisig.sol";
 import "./RNG.sol";
-import "./erc1155currencyminter.sol";
+import "./spntoken.sol";
 
-contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
+contract erc721BlacksmithMinter is ERC721, Ownable, Consumer {
     error NotAuthorized();
     error GameNotFound();
     error InvalidPrice();
@@ -25,53 +25,63 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
         string weaponType;
         string imageUri;
     }
-
+    
+    
+    address private feeCollector;
     address private admin;
     address private multisigAddress;
-        multisig private dao;
+    multisig private dao;
     //  RNG private rng;
-    ICurrency private token;
+    IERC20 private token;
 
     uint private tokenCounter;
-    uint private buyingCurrency;
+    //uint private buyingCurrency;
     uint private buyingPrice;
     uint private requestID;
 
     mapping(uint256 => WeaponType) private weaponType;
-    mapping(uint256 => MintedWeapon) private mintedDetails;
+    mapping(uint256 => MintedWeapon) public mintedDetails;
+   
 
     constructor(
         address _DAO,
-        address _buyToken, uint64 subscriptionId, address vrfCoordinator, bytes32 keyHash
-    ) ERC721("Weapons", "WPN") RNG(subscriptionId, vrfCoordinator, keyHash) {
-        if (_DAO == address(0) || _buyToken == address(0))
-            revert ZeroAddress();
-         dao = multisig(_DAO);
+        address _buyToken,
+        uint64 subscriptionId
+    ) ERC721("Weapons", "WPN") Consumer(subscriptionId) {
+        if (_DAO == address(0) || _buyToken == address(0)) revert ZeroAddress();
+        dao = multisig(_DAO);
         multisigAddress = _DAO;
         // rng = RNG(_rng);
-        token = ICurrency(_buyToken);
+        token = IERC20(_buyToken);
         admin = dao.admin();
         tokenCounter = 0;
     }
 
-    modifier onlyAdmin {
+    modifier onlyAdmin() {
         if (msg.sender != admin) revert NotAuthorized();
         _;
     }
 
-    function setWeaponPrice(uint tokenId, uint price) external onlyAdmin {
+    function feeTo(address _address) external onlyAdmin {
+        if (_address == address(0)) revert ZeroAddress();
+        feeCollector = _address;
+    }
+
+    function checkBalance(address _address) public view returns (uint) {
+        return token.balanceOf(_address);
+    }
+
+    function setWeaponPrice(uint price) external onlyAdmin {
         //if (!dao.currencyApproved(tokenId)) revert NotApprovedCurrency();
-        if (price == 0 || tokenId == 0) revert InvalidPrice();
-        buyingCurrency = tokenId;
+        if (price == 0) revert InvalidPrice();
         buyingPrice = price;
     }
 
     function addWeapon(
-       uint id,
+        uint id,
         string calldata _weapon,
         string calldata _imgUri
     ) external onlyAdmin {
-        
         //if(!dao.gameApproved(_address)) revert GameNotFound();
         //if (_address== address(0)) revert ZeroAddress();
 
@@ -82,26 +92,24 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
 
     function mintWeapon() external {
         //check if there is enough tokens in sender wallet
-        if (token.balanceOf(_msgSender(), buyingCurrency) <= buyingPrice)
+        if (token.balanceOf(_msgSender()) <= buyingPrice)
             revert InsufficientAmount();
-        if (!token.isApprovedForAll(_msgSender(), address(this)))
-            revert NotApprovedOperator();
 
         //send buying price to burn address
-        token._burn(_msgSender(),buyingCurrency, buyingPrice);
-        uint tokenID = ++tokenCounter;
-        _mint(_msgSender(), tokenID);
-        uint requestId = requestRandomWords(1, 200000);
-
+        token.transferFrom(_msgSender(), feeCollector, buyingPrice);
+        ++tokenCounter;
+        _mint(_msgSender(), tokenCounter);
+        requestRandomWords();
     }
 
-    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
-        internal
-        virtual
-        override
-    {
+    function fulfillRandomWords(
+        uint256 requestId,
+        uint256[] memory randomWords
+    ) internal virtual override {
         //uint _requestId = requestId;
         //Retrieve details for mint using request ID
+        s_requests[requestId].fulfilled = true;
+        s_requests[requestId].randomWords = randomWords;
         WeaponType storage weapon = weaponType[tokenCounter];
         uint index = randomWords[0] % weapon.typeWeapon.length;
 
@@ -110,8 +118,10 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
         tokens.imageUri = weapon.weaponImage[index];
     }
 
-    function removeWeapon(uint id, string memory _weaponType) external onlyAdmin{
-        
+    function removeWeapon(
+        uint id,
+        string memory _weaponType
+    ) external onlyAdmin {
         WeaponType storage item = weaponType[id];
 
         string[] memory toBeDeleted = item.typeWeapon;
@@ -123,9 +133,13 @@ contract erc721BlacksmithMinter is ERC721, Ownable, RNG {
             ) {
                 //item.typeWeapon.pop();
                 //item.weaponImage.pop();
-                 item.typeWeapon[i] = item.typeWeapon[item.typeWeapon.length -1];
+                item.typeWeapon[i] = item.typeWeapon[
+                    item.typeWeapon.length - 1
+                ];
                 item.typeWeapon.pop();
-                item.weaponImage[i] = item.weaponImage[item.weaponImage.length - 1];
+                item.weaponImage[i] = item.weaponImage[
+                    item.weaponImage.length - 1
+                ];
                 item.weaponImage.pop();
             }
             unchecked {

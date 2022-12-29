@@ -8,7 +8,7 @@ import "./multisig.sol";
 import "./RNG.sol";
 import "./erc1155currencyminter.sol";
 
-contract erc1155EffectsMinter is  ERC1155,RNG{
+contract erc1155EffectsMinter is  ERC1155,Consumer{
    error ZeroAddress();
    error NotApprovedCurrency();
    error InsufficientAmount();
@@ -41,18 +41,22 @@ contract erc1155EffectsMinter is  ERC1155,RNG{
     uint private buyingPrice;
   
     address private DAO;
-    address private owner;
+    address private admin;
 
-    constructor(address _DAO, uint64 subscriptionId, address vrfCoordinator, bytes32 keyHash) ERC1155(" ") RNG(subscriptionId, vrfCoordinator, keyHash) {
+    constructor(address _DAO, uint64 subscriptionId) ERC1155(" ") Consumer(subscriptionId) {
         if(_DAO== address(0)) revert ZeroAddress();
         dao = multisig(_DAO);
-        owner = dao.admin();
+        admin = dao.admin();
     }
 
 modifier onlyAdmin {
-     if (msg.sender!= owner) revert NotAuthorized();
+     if (msg.sender!= admin) revert NotAuthorized();
      _;
 }
+    function viewEffects(uint _id) external view returns (uint) {
+        WeaponEffects storage effect = weaponEffects[_id];
+        return effect.effectName.length;
+    }
 
     function setEffectPrice(uint _currencyID, uint _amount) external onlyAdmin {
         if(_currencyID==0 || _amount ==0) revert InvalidInput();
@@ -91,7 +95,7 @@ modifier onlyAdmin {
         token._burn(_msgSender(),buyingCurrency, buyingPrice);
         uint tokenID = ++tokenCounter;
          _mint(_msgSender(), tokenID, 1 ,"");
-        uint requestId = requestRandomWords(1, 200000);
+         requestRandomWords();
 
     }
 

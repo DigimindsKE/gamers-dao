@@ -11,10 +11,10 @@ async function main() {
   const vrfCoordinator = "0x2ca8e0c643bde4c2e08ab1fa0da3401adad7734d"
   const KeyHash = "0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15"
   const multisigAddress = "0x22dAB01f8FCF47D14280AdB21586Da64969991c8"
-  const Currency ="0x1973D0f73253c3F0D94B83B75103A6BDe411B86c"
+  const Currency ="0xeC46Ee74967F193773aeFFe630C86B0a2F1aCC7c"
   //[admin, user1, user2] = ["0x34d235fC47593EA72A493804FEd11C1499A7826C","0x11ec36418bE9a610904D1409EF0577b645104881", "0xa5065676D5d12b202dF10f479F2DDD62234b91b9"]
   
-  const ms = await hre.ethers.getContractFactory("multisig");
+  /*const ms = await hre.ethers.getContractFactory("multisig");
   const Multisig = await ms.deploy(["0x34d235fC47593EA72A493804FEd11C1499A7826C","0x11ec36418bE9a610904D1409EF0577b645104881", "0xa5065676D5d12b202dF10f479F2DDD62234b91b9"]);
   await Multisig.deployed();
   console.log("Multisig Contract Address ", Multisig.address)
@@ -34,17 +34,6 @@ async function main() {
   await Character.deployed();
   console.log("Character Minter: ", Character.address)
 
-  const weapon = await hre.ethers.getContractFactory("erc721BlacksmithMinter")
-  const Weapons = await weapon.deploy(multisigAddress,Currency,subscriptionID,vrfCoordinator,KeyHash)
-  await Weapons.deployed();
-  console.log("Weapon Minter: ", Weapons.address)
-
-  const effects = await hre.ethers.getContractFactory("erc1155EffectsMinter")
-  const Effect = await effects.deploy(multisigAddress,subscriptionID,vrfCoordinator,KeyHash)
-  await Effect.deployed();
-  console.log("Effect Minter: ", Effect.address)
-
-
   const enemy = await hre.ethers.getContractFactory("enemies")
   const Enemies = await enemy.deploy(Multisig.address)
   await Enemies.deployed();
@@ -54,6 +43,22 @@ async function main() {
   const Rewards = await reward.deploy(Currency.address,Multisig.address,subscriptionID,vrfCoordinator,KeyHash)
   await Rewards.deployed();
   console.log("Rewards: ", Token.address)
+
+    
+
+  */
+  const weapon = await hre.ethers.getContractFactory("erc721BlacksmithMinter")
+  const Weapons = await weapon.deploy(multisigAddress,Currency,subscriptionID)
+  await Weapons.deployed();
+  console.log("Weapon Minter: ", Weapons.address)
+
+  const effects = await hre.ethers.getContractFactory("erc1155EffectsMinter")
+  const Effect = await effects.deploy(multisigAddress,subscriptionID)
+  await Effect.deployed();
+  console.log("Effect Minter: ", Effect.address)
+
+  
+
 
   
 

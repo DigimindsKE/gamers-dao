@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("ethers");
 
-describe("multisig DAO", function () {
+/*describe("multisig DAO", function () {
     
     beforeEach(async function () {
         
@@ -169,7 +169,25 @@ describe("ERC1155 Currency Minter", async function(){
             await Enemies.upgradeEnemy(1)
             console.log((await Enemies.newEnemy(1)).level.toString()) 
             expect((await Enemies.newEnemy(1)).level.toString()).to.equal('2')
+        }) */
+        describe("SPN Token", async function(){
+            beforeEach(async function () {
+                
+                // await minter.deployed();
+                [owner, user, user1, user2] = await hre.ethers.getSigners();
+                const token = await hre.ethers.getContractFactory("spnToken");
+                Tokens = await token.deploy(10000);
+                
+            })
+            it("Should be able to transfer", async function(){
+                await Tokens.transfer(user2.address, 100);
+
+                expect((await Tokens.balanceOf(user2.address)).toString()).to.equal('100')
+            })
+
+
         })
-})
-    })
-})
+        
+//})
+  //  })
+//})

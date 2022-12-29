@@ -11,7 +11,7 @@ struct RewardPool {
     uint[] baseRewards;
 }
 
-contract rewards is RNG, Context {
+contract rewards is Consumer, Context {
     error InvalidAddress();
     error NotAuthorized();
 
@@ -33,8 +33,8 @@ contract rewards is RNG, Context {
 
     mapping(uint => RewardPool) private poolDetails;
 
-    constructor(address _currencyAddress, address _managementContract, uint64 subscriptionId, address vrfCoordinator, bytes32 keyHash)
-        RNG(subscriptionId, vrfCoordinator, keyHash)
+    constructor(address _currencyAddress, address _managementContract, uint64 subscriptionId)
+        Consumer(subscriptionId)
     {
         if (_currencyAddress == address(0) || _managementContract == address(0))
             revert InvalidAddress();
@@ -47,10 +47,12 @@ contract rewards is RNG, Context {
         //Check that the caller is a game on the management contract
         if (!signer.gameApproved(msg.sender)) revert NotAuthorized();
         //Request random number
-        uint _requestID = requestRandomWords(1, 200000);
+        uint _requestID = requestRandomWords();
 
         //Store details regarding mint using request ID
-        MintDetails storage details = onReturn[_requestID];
+        MintDetails storage details = onReturn[
+            _poolID
+        ];
         details.beingRewarded = _msgSender();
         details.enemyLevel = enemyLevel;
         details.poolID = _poolID;
@@ -66,7 +68,7 @@ contract rewards is RNG, Context {
         //Retrieve details for mint using request ID
         uint _requestID = requestId;
 
-        MintDetails storage details = onReturn[_requestID];
+        MintDetails storage details = onReturn[poolID];
         uint poolId = details.poolID;
         RewardPool storage pool = poolDetails[poolId];
 

@@ -66,7 +66,7 @@ contract rewards is Consumer, Context {
         override
     {
         //Retrieve details for mint using request ID
-        uint _requestID = requestId;
+       // uint _requestID = requestId;
 
         MintDetails storage details = onReturn[poolID];
         uint poolId = details.poolID;
